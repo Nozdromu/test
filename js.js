@@ -13,12 +13,12 @@ filter = {
 url_orderinfo = "";
 url_orders = "";
 image = {};
-$('document').ready(function () {
+$('document').ready(function() {
     username = infodata.username;
     password = infodata.md5;
     url_orderinfo = infodata.url_orderinfo;
     url_orders = infodata.url_orders;
-    $('#abc').change(function (a) {
+    $('#abc').change(function(a) {
         if (this.checked) {
             $('.yichuli').hide();
         } else {
@@ -31,31 +31,31 @@ $('document').ready(function () {
     _timestamp = parseInt(_date.getTime() / 1e3);
     _token = md5(btoa(username + ":" + _timestamp) + password);
 
-    var bt1 = $('<button>详细</button>').click(function () {
+    var bt1 = $('<button>详细</button>').click(function() {
         $('#s').hide();
         $('#l').hide();
         $('#tt').hide();
         $('#t').show();
     });
-    var bt2 = $('<button>汇总</button>').click(function () {
+    var bt2 = $('<button>汇总</button>').click(function() {
         $('#l').hide();
         $('#t').hide();
         $('#tt').hide();
         $('#s').show();
     });;
-    var bt3 = $('<button>地点</button>').click(function () {
+    var bt3 = $('<button>地点</button>').click(function() {
         $('#s').hide();
         $('#t').hide();
         $('#tt').hide();
         $('#l').show();
     });
-    var bt4 = $('<button>贴纸</button>').click(function () {
+    var bt4 = $('<button>贴纸</button>').click(function() {
         $('#s').hide();
         $('#t').hide();
         $('#l').hide();
         $('#tt').show();
     });
-    var bt5 = $('<button>跟新</button>').click(function () {
+    var bt5 = $('<button>跟新</button>').click(function() {
         get_data();
     });
     $('#btn').append(bt1).append(bt2).append(bt3).append(bt4).append(bt5);
@@ -76,8 +76,8 @@ $('document').ready(function () {
     plist = [];
     o = [];
     get_data();
-    $('#set').click(function () {
-        $.each(o, function (i, v) {
+    $('#set').click(function() {
+        $.each(o, function(i, v) {
             v.printed = true;
             v.chuli.text('已处理');
             v.chuli.css('background-color', '#80ced6')
@@ -91,48 +91,48 @@ $('document').ready(function () {
 })
 
 function get_data() {
-    var p = new Promise(function (resolve, reject) {
+    var p = new Promise(function(resolve, reject) {
         _date = new Date;
         _timestamp = parseInt(_date.getTime() / 1e3);
         _token = md5(btoa(username + ":" + _timestamp) + password);
         var d;
         $.ajax({
             url: url_orders,
-            beforeSend: function (xhr) {
+            beforeSend: function(xhr) {
                 xhr.setRequestHeader('timestamp', _timestamp);
                 xhr.setRequestHeader('token', _token);
                 xhr.setRequestHeader('username', 'tiantian');
             },
             data: filter,
             type: "GET",
-            success: function (data) {
+            success: function(data) {
                 d = data;
                 resolve(d);
             }
         });
     })
-    p.then(function (data) {
+    p.then(function(data) {
         orders = data;
-    }).then(function () {
-        $.each(orders, function (index, val) {
+    }).then(function() {
+        $.each(orders, function(index, val) {
             if (val.restaurant.id == 92) {
-                var t = new Promise(function (resolve, reject) {
+                var t = new Promise(function(resolve, reject) {
                     _date = new Date;
                     _timestamp = parseInt(_date.getTime() / 1e3);
                     _token = md5(btoa(username + ":" + _timestamp) + password);
                     var d;
                     $.ajax({
                         url: url_orderinfo + val.id,
-                        beforeSend: function (xhr) {
+                        beforeSend: function(xhr) {
                             xhr.setRequestHeader('timestamp', _timestamp);
                             xhr.setRequestHeader('token', _token);
                             xhr.setRequestHeader('username', 'tiantian');
                         },
                         type: "GET",
-                        success: function (data) {
+                        success: function(data) {
                             d = data;
-                            $.each(d.goods, function (i, v) {
-                                if (o.find(function (a) {
+                            $.each(d.goods, function(i, v) {
+                                if (o.find(function(a) {
                                         return a.id == d.sn
                                     }) != undefined) {} else {
                                     for (var x = 0; x < v.numbers; x++) {
@@ -175,7 +175,7 @@ function get_data() {
                 plist.push(t);
             }
         })
-    }).then(function () {
+    }).then(function() {
         let a = Promise.all(plist).then(values => {
             build_summery(summery);
             makefilter()
@@ -193,7 +193,7 @@ function addrow(value) {
     var a = $('<a>', {
         style: 'background-color: coral;',
         text: '未处理'
-    }).click(function () {
+    }).click(function() {
         if (!value.printed) {
             value.printed = !value.printed;
             a.text('已处理');
@@ -216,7 +216,7 @@ function addrow(value) {
         console.log('a');
     }
     row.append($('<td>').append(a));
-    $.each(value, function (i, v) {
+    $.each(value, function(i, v) {
         if (i != 'order' && i != 'chuli' && i != 'updated' && i != 'addrice' && i != 'printed') {
             var c = $('<td>', {
                 style: 'padding-right:10px',
@@ -247,16 +247,16 @@ function addsummery(value) {
             starter: {},
             order: []
         }
-        $.each(value.order.goods[0].attrs, function (i, v) {
+        $.each(value.order.goods[0].attrs, function(i, v) {
             if (v.name == '升级豪华套餐' || v.name == '豪华套餐配菜') {
-                $.each(v.values, function (ind, val) {
+                $.each(v.values, function(ind, val) {
                     summery.dish[value.dish].starter[val.name] = 0;
                 })
                 if (summery.starter == null) {
                     summery.starter = {
                         num: 0
                     };
-                    $.each(v.values, function (ind, vals) {
+                    $.each(v.values, function(ind, vals) {
                         summery.starter[vals.name] = 0;
                     })
                 }
@@ -294,13 +294,13 @@ function build_summery(data) {
     }));
     var dish = $('<div>');
     var sdiv = $('<div>');
-    $.each(data.dish, function (i, v) {
+    $.each(data.dish, function(i, v) {
         if (i != 'num') {
             var _dish = $('<div>');
             _dish.append($('<div>').append($('<h3>', {
                 text: i + ':' + v.num
             })))
-            $.each(v.starter, function (ind, val) {
+            $.each(v.starter, function(ind, val) {
                 if (val > 0) {
                     _dish.append($('<div>').append($('<h4>', {
                         text: ind + ':' + val
@@ -311,7 +311,7 @@ function build_summery(data) {
         }
 
     })
-    $.each(data.starter, function (i, v) {
+    $.each(data.starter, function(i, v) {
         if (v != 0)
             if (i == 'num')
                 sdiv.append($('<div>').append($('<h1>', {
@@ -327,14 +327,14 @@ function build_summery(data) {
     })));
     var loc = $('#l');
     loc.empty();
-    $.each(data.address, function (i, v) {
-        var _loc = $('<div>');
+    $.each(data.address, function(i, v) {
+        var _loc = $('<div>', { style: 'page-break-inside:avoid' });
         var table = $('<table>');
 
         _loc.append($('<div>').append($('<h1>' + i + '&emsp;&emsp;' + v.num + '</h1>')));
         _loc.append(table);
 
-        $.each(v.order, function (ind, val) {
+        $.each(v.order, function(ind, val) {
             table.append($('<tr>').append($('<td>', {
                 style: 'padding-right:15px',
                 text: val.name
@@ -358,6 +358,7 @@ function build_summery(data) {
 
 function makefilter() {
     var f = $('#f');
+    f.empty();
     f.append($('<input>', {
         name: 'all',
         id: 'ttall',
@@ -366,7 +367,7 @@ function makefilter() {
     })).append($('<lable>', {
         for: 'ttall',
         text: 'all'
-    })).click(function () {
+    })).click(function() {
         console.log($("input[name='all']").is(':checked'));
     });
     f.append($('<input>', {
@@ -387,7 +388,7 @@ function makefilter() {
         for: 'ttrice',
         text: '加饭'
     }));
-    $.each(summery.dish, function (i, v) {
+    $.each(summery.dish, function(i, v) {
         if (i != 'num') {
             f.append($('<input>', {
                 name: 'dish',
@@ -400,8 +401,9 @@ function makefilter() {
             }));
         }
     })
-    f.append($('<button>确认</button>').click(function () {
+    f.append($('<button>确认</button>').click(function() {
         build_sticker();
+        build_stickerprint()
     }))
 }
 
@@ -418,7 +420,7 @@ function build_sticker() {
         if ($("input[name='rice']").is(':checked')) {
             order = order.concat(summery.riceorder);
         }
-        $.each($("input[name='dish']:checked"), function (i, v) {
+        $.each($("input[name='dish']:checked"), function(i, v) {
             order = order.concat(summery.dish[v.value].order);
         })
     }
@@ -476,7 +478,123 @@ function build_sticker() {
 
     }
     var x = 0;
-    $.each(order, function (i, v) {
+    $.each(order, function(i, v) {
+        if (!v.printed) {
+            tdlist[x].append($('<div>', {
+                style: 'width:100%;margin-top:30px'
+            }).append($('<img>', {
+                src: 'logo.jpg',
+                width: '100%'
+            })))
+            tdlist[x].append($('<div>', {
+                style: 'TEXT-ALIGN: center'
+            }).append($('<a>', {
+                text: v.id
+            })))
+            tdlist[x].append($('<div>', {
+                style: 'TEXT-ALIGN: center'
+            }).append($('<a>', {
+                text: v.name + v.mobile
+            })))
+            tdlist[x].append($('<div>', {
+                style: 'TEXT-ALIGN: center'
+            }).append($('<a>', {
+                text: v.dish
+            })))
+            tdlist[x].append($('<div>', {
+                style: 'TEXT-ALIGN: center'
+            }).append($('<a>', {
+                text: v.starter
+            })))
+            if ((x + 1) % 15 == 13 || (x + 1) % 15 == 14 || (x + 1) % 15 == 0)
+                tdlist[x].append($('<div>', {
+                    style: 'TEXT-ALIGN: center;'
+                }).append($('<a>', {
+                    text: v.address
+                })))
+            else
+                tdlist[x].append($('<div>', {
+                    style: 'TEXT-ALIGN: center;margin-bottom:28px'
+                }).append($('<a>', {
+                    text: v.address
+                })))
+            x += 1;
+        }
+    })
+}
+
+function build_stickerprint() {
+
+    var order = [];
+    $('#ppp').empty();
+    if ($("input[name='all']").is(':checked')) {
+        order = o;
+    } else {
+        if ($("input[name='starter']").is(':checked')) {
+            order = order.concat(summery.starter_order);
+        }
+        if ($("input[name='rice']").is(':checked')) {
+            order = order.concat(summery.riceorder);
+        }
+        $.each($("input[name='dish']:checked"), function(i, v) {
+            order = order.concat(summery.dish[v.value].order);
+        })
+    }
+    var tablenum = summery.num / 15;
+    var tablelist = [];
+    var trlist = [];
+    var tdlist = [];
+    for (var i = 0; i < tablenum; i++) {
+        tablelist.push($('<table>', {
+            style: 'width:100%;font-size:12px;font-weight: bold;'
+        }));
+        if (i > 0) {
+            $('#ppp').append($('<div>', {
+                class: 'page',
+                style: 'margin-top:16px'
+            }).append(tablelist[i]));
+        } else {
+            $('#ppp').append($('<div>', {
+                class: 'page'
+            }).append(tablelist[i]));
+        }
+
+        for (var j = 0; j < 5; j++) {
+            var tr = $('<tr>', {
+                style: 'width:100%'
+            });
+            trlist.push(tr);
+            tablelist[i].append(tr);
+            for (var x = 0; x < 3; x++) {
+                var td = $('<td>', {
+                    style: 'width:32%'
+                });
+                tr.append(td);
+                tdlist.push(td);
+                if (x == 1) {
+                    td.css({
+                        'padding-left': '19px',
+                        'padding-right': '19px'
+                    })
+                }
+                if (x == 0) {
+                    td.css({
+                        'padding-right': '20px',
+                        'padding-left': '18px'
+                    })
+                }
+                if (x == 2) {
+                    td.css({
+                        'padding-left': '18px',
+                        'padding-right': '20px'
+                    })
+                }
+            }
+        }
+
+    }
+    var x = 0;
+    $.each(order, function(i, v) {
         if (!v.printed) {
             tdlist[x].append($('<div>', {
                 style: 'width:100%;margin-top:30px'
@@ -528,7 +646,7 @@ async function getdata(data, url, res) {
     var d;
     $.ajax({
         url: url,
-        beforeSend: function (xhr) {
+        beforeSend: function(xhr) {
             xhr.setRequestHeader('timestamp', _timestamp);
             xhr.setRequestHeader('token', _token);
             xhr.setRequestHeader('username', 'tiantian');
@@ -536,7 +654,7 @@ async function getdata(data, url, res) {
         data: data,
         async: false,
         type: "GET",
-        success: function (data) {
+        success: function(data) {
             d = data;
             res(d)
         }
