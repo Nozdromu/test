@@ -18,6 +18,13 @@ $('document').ready(function () {
     password = infodata.md5;
     url_orderinfo = infodata.url_orderinfo;
     url_orders = infodata.url_orders;
+    $('#abc').change(function (a) {
+        if (this.checked) {
+            $('.yichuli').hide();
+        } else {
+            $('.yichuli').show();
+        }
+    })
     image = new Image();
     image.src = 'logo.jpg';
     _date = new Date;
@@ -47,8 +54,11 @@ $('document').ready(function () {
         $('#t').hide();
         $('#l').hide();
         $('#tt').show();
-    });;
-    $('#btn').append(bt1).append(bt2).append(bt3).append(bt4);
+    });
+    var bt5 = $('<button>跟新</button>').click(function () {
+        get_data();
+    });
+    $('#btn').append(bt1).append(bt2).append(bt3).append(bt4).append(bt5);
     $('#s').hide();
     $('#l').hide();
     $('#tt').hide();
@@ -72,6 +82,11 @@ $('document').ready(function () {
             v.chuli.text('已处理');
             v.chuli.css('background-color', '#80ced6')
         })
+        $('.weichuli').addClass('yichuli');
+        $('.yichuli').removeClass('weichuli');
+        if ($('#abc').checked) {
+            $('.yichuli').hide();
+        }
     })
 })
 
@@ -117,38 +132,39 @@ function get_data() {
                         success: function (data) {
                             d = data;
                             $.each(d.goods, function (i, v) {
-                                if (o.find(a => a.id == v.id)) {
-
-                                } else {
-                                    if (val.pickup_address.address == '请选择送餐地址 Seattle WA') {
-                                        val.pickup_address.address = val.address;
-                                    }
-                                    var item = {
-                                        id: val.sn,
-                                        name: val.name,
-                                        mobile: val.mobile,
-                                        address: val.pickup_address.address.indexOf(',') > 0 ? val.pickup_address.address.substring(0, val.pickup_address.address.indexOf(',')) : val.pickup_address.address,
-                                        dish: v.name.substring(0, v.name.indexOf('(')) > 0 ? v.name.substring(0, v.name.indexOf('(')) : v.name,
-                                        num: v.numbers,
-                                        updated: v.selected_attrs['升级豪华套餐'] == undefined ? false : true,
-                                        addrice: v.selected_attrs['饭不够吃？'] == undefined ? false : true,
-                                        starter: v.selected_attrs['升级豪华套餐'] == undefined ? '无' : v.selected_attrs['升级豪华套餐'][0].name,
-                                        note: val.user_remark,
-                                        order: data,
-                                        printed: false
-                                    }
-                                    if (val.deliverer_remark != null) {
-                                        item.note = val.deliverer_remark;
-                                    }
-                                    if (val.pickup_address.address.indexOf(';') > 0)
-                                        item.address = val.pickup_address.address.substring(0, val.pickup_address.address.indexOf(';'))
-                                    else if (val.pickup_address.address.indexOf(':') > 0)
-                                        item.address = val.pickup_address.address.substring(0, val.pickup_address.address.indexOf(':'))
-                                    for (var i = 0; i < item.num; i++) {
+                                if (o.find(function (a) {
+                                        return a.id == d.sn
+                                    }) != undefined) {} else {
+                                    for (var x = 0; x < v.numbers; x++) {
+                                        if (val.pickup_address.address == '请选择送餐地址 Seattle WA') {
+                                            val.pickup_address.address = val.address;
+                                        }
+                                        var item = {
+                                            id: val.sn,
+                                            name: val.name,
+                                            mobile: val.mobile,
+                                            address: val.pickup_address.address.indexOf(',') > 0 ? val.pickup_address.address.substring(0, val.pickup_address.address.indexOf(',')) : val.pickup_address.address,
+                                            dish: v.name.substring(0, v.name.indexOf('(')) > 0 ? v.name.substring(0, v.name.indexOf('(')) : v.name,
+                                            num: 1,
+                                            updated: v.selected_attrs['升级豪华套餐'] == undefined ? false : true,
+                                            addrice: v.selected_attrs['饭不够吃？'] == undefined ? false : true,
+                                            starter: v.selected_attrs['升级豪华套餐'] == undefined ? '无' : v.selected_attrs['升级豪华套餐'][0].name,
+                                            note: val.user_remark,
+                                            order: data,
+                                            printed: false
+                                        }
+                                        if (val.deliverer_remark != null) {
+                                            item.note = val.deliverer_remark;
+                                        }
+                                        if (val.pickup_address.address.indexOf(';') > 0)
+                                            item.address = val.pickup_address.address.substring(0, val.pickup_address.address.indexOf(';'))
+                                        else if (val.pickup_address.address.indexOf(':') > 0)
+                                            item.address = val.pickup_address.address.substring(0, val.pickup_address.address.indexOf(':'))
                                         o.push(item);
-                                    }
-                                    if (item.dish.indexOf('(') > 0) {
-                                        item.dish = item.dish.substring(0, item.dish.indexOf('('));
+                                        if (item.dish.indexOf('(') > 0) {
+                                            item.dish = item.dish.substring(0, item.dish.indexOf('('));
+                                        }
+                                        addrow(item);
                                     }
                                 }
                             })
@@ -161,7 +177,6 @@ function get_data() {
         })
     }).then(function () {
         let a = Promise.all(plist).then(values => {
-            b_summery(o);
             build_summery(summery);
             makefilter()
             console.log(o);
@@ -169,36 +184,56 @@ function get_data() {
     })
 }
 
-function b_summery(data) {
+function addrow(value) {
     var table = $('#table');
-    $.each(data, function (index, value) {
-        var row = $('<tr>');
-        table.append(row);
-        var a = $('<a>', {
-            style: 'background-color: coral;',
-            text: '未处理'
-        });
-        value['chuli'] = a;
-        row.append($('<td>').append(a));
-        $.each(value, function (i, v) {
-            if (i != 'order' && i != 'chuli') {
-                var c = $('<td>', {
-                    style: 'padding-right:10px',
-                    text: v
-                });
-                row.append(c);
-            }
-        })
-
+    var row = $('<tr>', {
+        class: 'weichuli'
+    });
+    table.append(row);
+    var a = $('<a>', {
+        style: 'background-color: coral;',
+        text: '未处理'
+    }).click(function () {
         if (!value.printed) {
-            a.val('已处理');
-            a.css('background-color:', 'green')
+            value.printed = !value.printed;
+            a.text('已处理');
+            a.css('background-color', '#80ced6')
+            a.addClass('yichuli');
+            a.removeClass('weichuli');
+            if ($('#abc').checked) {
+                $('.yichuli').hide();
+            }
+        } else {
+            value.printed = !value.printed;
+            a.text('未处理');
+            a.css('background-color', 'coral')
+            a.addClass('weichuli');
+            a.removeClass('yichuli');
         }
-        add_order(value);
+    });
+    value['chuli'] = a;
+    if (value.id == 'US138162') {
+        console.log('a');
+    }
+    row.append($('<td>').append(a));
+    $.each(value, function (i, v) {
+        if (i != 'order' && i != 'chuli' && i != 'updated' && i != 'addrice' && i != 'printed') {
+            var c = $('<td>', {
+                style: 'padding-right:10px',
+                text: v
+            });
+            row.append(c);
+        }
     })
+
+    if (!value.printed) {
+        a.val('已处理');
+        a.css('background-color:', 'green')
+    }
+    addsummery(value);
 }
 
-function add_order(value) {
+function addsummery(value) {
     summery.num += 1;
     if (summery.address[value.address] == undefined) {
         summery.address[value.address] = {
@@ -247,8 +282,13 @@ function add_order(value) {
 
 }
 
+function updatedinfo() {
+
+}
+
 function build_summery(data) {
     var div = $('#s');
+    div.empty();
     var title = $('<div>').append($('<h1>', {
         text: '总数:' + data.num
     }));
@@ -286,12 +326,14 @@ function build_summery(data) {
         text: '加饭:' + data.rice
     })));
     var loc = $('#l');
+    loc.empty();
     $.each(data.address, function (i, v) {
         var _loc = $('<div>');
         var table = $('<table>');
 
         _loc.append($('<div>').append($('<h1>' + i + '&emsp;&emsp;' + v.num + '</h1>')));
         _loc.append(table);
+
         $.each(v.order, function (ind, val) {
             table.append($('<tr>').append($('<td>', {
                 style: 'padding-right:15px',
@@ -433,45 +475,49 @@ function build_sticker() {
         }
 
     }
+    var x = 0;
     $.each(order, function (i, v) {
-        tdlist[i].append($('<div>', {
-            style: 'width:100%;margin-top:30px'
-        }).append($('<img>', {
-            src: 'logo.jpg',
-            width: '100%'
-        })))
-        tdlist[i].append($('<div>', {
-            style: 'TEXT-ALIGN: center'
-        }).append($('<a>', {
-            text: v.id
-        })))
-        tdlist[i].append($('<div>', {
-            style: 'TEXT-ALIGN: center'
-        }).append($('<a>', {
-            text: v.name + v.mobile
-        })))
-        tdlist[i].append($('<div>', {
-            style: 'TEXT-ALIGN: center'
-        }).append($('<a>', {
-            text: v.dish
-        })))
-        tdlist[i].append($('<div>', {
-            style: 'TEXT-ALIGN: center'
-        }).append($('<a>', {
-            text: v.starter
-        })))
-        if ((i + 1) % 15 == 13 || (i + 1) % 15 == 14 || (i + 1) % 15 == 0)
-            tdlist[i].append($('<div>', {
-                style: 'TEXT-ALIGN: center;'
-            }).append($('<a>', {
-                text: v.address
+        if (!v.printed) {
+            tdlist[x].append($('<div>', {
+                style: 'width:100%;margin-top:30px'
+            }).append($('<img>', {
+                src: 'logo.jpg',
+                width: '100%'
             })))
-        else
-            tdlist[i].append($('<div>', {
-                style: 'TEXT-ALIGN: center;margin-bottom:28px'
+            tdlist[x].append($('<div>', {
+                style: 'TEXT-ALIGN: center'
             }).append($('<a>', {
-                text: v.address
+                text: v.id
             })))
+            tdlist[x].append($('<div>', {
+                style: 'TEXT-ALIGN: center'
+            }).append($('<a>', {
+                text: v.name + v.mobile
+            })))
+            tdlist[x].append($('<div>', {
+                style: 'TEXT-ALIGN: center'
+            }).append($('<a>', {
+                text: v.dish
+            })))
+            tdlist[x].append($('<div>', {
+                style: 'TEXT-ALIGN: center'
+            }).append($('<a>', {
+                text: v.starter
+            })))
+            if ((x + 1) % 15 == 13 || (x + 1) % 15 == 14 || (x + 1) % 15 == 0)
+                tdlist[x].append($('<div>', {
+                    style: 'TEXT-ALIGN: center;'
+                }).append($('<a>', {
+                    text: v.address
+                })))
+            else
+                tdlist[x].append($('<div>', {
+                    style: 'TEXT-ALIGN: center;margin-bottom:28px'
+                }).append($('<a>', {
+                    text: v.address
+                })))
+            x += 1;
+        }
     })
 }
 
