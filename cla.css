@@ -1,0 +1,18 @@
+@media print {
+    .noprint {
+        display: none;
+    }
+}
+
+.page {
+    width: 215.9mm;
+    max-height: 279mm;
+    margin: auto;
+    page-break-after: always;
+    page-break-before: always;
+}
+
+@page {
+    size: Letter;
+    margin: 0;
+}
