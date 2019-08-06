@@ -5,11 +5,17 @@
     .print {
         display: block;
     }
+    .pageshow {
+        border: none;
+    }
+}
+
+.im {
+    height: 60px;
 }
 
 .page {
     width: 215.9mm;
-    height: 279mm;
     margin: auto;
     page-break-after: always;
     page-break-before: always;
@@ -29,5 +35,4 @@
 
 @page {
     size: Letter;
-    margin: 0;
 }

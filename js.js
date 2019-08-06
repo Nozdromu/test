@@ -58,7 +58,10 @@ $('document').ready(function() {
     var bt5 = $('<button>跟新</button>').click(function() {
         get_data();
     });
-    $('#btn').append(bt1).append(bt2).append(bt3).append(bt4).append(bt5);
+    var bt6 = $('<button>跟新</button>').click(function() {
+        window.print();
+    });
+    $('#btn').append(bt1).append(bt2).append(bt3).append(bt4).append(bt5).append(bt6);
     $('#s').hide();
     $('#l').hide();
     $('#tt').hide();
@@ -327,10 +330,12 @@ function build_summery(data) {
     })));
     var loc = $('#l');
     loc.empty();
+    var hh = 0;
     $.each(data.address, function(i, v) {
-        var _loc = $('<div>', { style: 'page-break-inside:avoid' });
-        var table = $('<table>');
 
+        var _loc = $('<div>', { style: 'padding:30px;' });
+        var table = $('<table>');
+        _loc.append($('<div>').append($('<img>', { src: 'fantuan.png', class: 'im' })).append($('<img>', { src: 'logo.jpg', class: 'im' })))
         _loc.append($('<div>').append($('<h1>' + i + '&emsp;&emsp;' + v.num + '</h1>')));
         _loc.append(table);
 
@@ -351,7 +356,16 @@ function build_summery(data) {
                 }).append($('<a>' + val.note + '</a>'))));
             }
         })
+        _loc.append($('<hr>'))
+
         loc.append(_loc);
+        console.log(loc.height());
+        console.log(_loc.height())
+        hh = hh + _loc.height();
+        if (hh > 900) {
+            _loc.css('page-break-after', 'always')
+        }
+        hh = 0;
     })
 
 }
