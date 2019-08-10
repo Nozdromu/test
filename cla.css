@@ -1,24 +1,51 @@
 @media print {
+    
     .noprint {
         display: none;
     }
-    .print {
+    * { 
+        float: none !important; 
+      }
+    .break{
+        page-break-after: always;
         display: block;
+        float: none;
     }
-    .pageshow {
-        border: none;
+    .break-before{
+        page-break-before: always;
+        display: block;
+        float: none;
     }
 }
 
 .im {
-    height: 60px;
+    height: 120px;
 }
-
+td,tr{
+    padding: 0px;
+    padding: 0px;
+    border-spacing:0PX
+}
+tr.singo h2{
+    -webkit-print-color-adjust: exact;
+    background-color: rgb(204, 253, 230);
+    margin-bottom: 10PX;
+    padding: 0px 5px 0px 5px;
+}
+tr.double{
+    background-color: #D3D3D3;
+}
+.break-before{
+    break-before: page;
+    margin-top: 30px;
+    float: none;
+}
 .page {
     width: 215.9mm;
     margin: auto;
     page-break-after: always;
     page-break-before: always;
+
 }
 
 .pageshow {

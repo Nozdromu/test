@@ -13,12 +13,12 @@ filter = {
 url_orderinfo = "";
 url_orders = "";
 image = {};
-$('document').ready(function() {
+$('document').ready(function () {
     username = infodata.username;
     password = infodata.md5;
     url_orderinfo = infodata.url_orderinfo;
     url_orders = infodata.url_orders;
-    $('#abc').change(function(a) {
+    $('#abc').change(function (a) {
         if (this.checked) {
             $('.yichuli').hide();
         } else {
@@ -31,34 +31,34 @@ $('document').ready(function() {
     _timestamp = parseInt(_date.getTime() / 1e3);
     _token = md5(btoa(username + ":" + _timestamp) + password);
 
-    var bt1 = $('<button>详细</button>').click(function() {
+    var bt1 = $('<button>详细</button>').click(function () {
         $('#s').hide();
         $('#l').hide();
         $('#tt').hide();
         $('#t').show();
     });
-    var bt2 = $('<button>汇总</button>').click(function() {
+    var bt2 = $('<button>汇总</button>').click(function () {
         $('#l').hide();
         $('#t').hide();
         $('#tt').hide();
         $('#s').show();
     });;
-    var bt3 = $('<button>地点</button>').click(function() {
+    var bt3 = $('<button>地点</button>').click(function () {
         $('#s').hide();
         $('#t').hide();
         $('#tt').hide();
         $('#l').show();
     });
-    var bt4 = $('<button>贴纸</button>').click(function() {
+    var bt4 = $('<button>贴纸</button>').click(function () {
         $('#s').hide();
         $('#t').hide();
         $('#l').hide();
         $('#tt').show();
     });
-    var bt5 = $('<button>跟新</button>').click(function() {
+    var bt5 = $('<button>更新</button>').click(function () {
         get_data();
     });
-    var bt6 = $('<button>跟新</button>').click(function() {
+    var bt6 = $('<button>打印</button>').click(function () {
         window.print();
     });
     $('#btn').append(bt1).append(bt2).append(bt3).append(bt4).append(bt5).append(bt6);
@@ -79,8 +79,8 @@ $('document').ready(function() {
     plist = [];
     o = [];
     get_data();
-    $('#set').click(function() {
-        $.each(o, function(i, v) {
+    $('#set').click(function () {
+        $.each(o, function (i, v) {
             v.printed = true;
             v.chuli.text('已处理');
             v.chuli.css('background-color', '#80ced6')
@@ -94,50 +94,55 @@ $('document').ready(function() {
 })
 
 function get_data() {
-    var p = new Promise(function(resolve, reject) {
+    var p = new Promise(function (resolve, reject) {
         _date = new Date;
         _timestamp = parseInt(_date.getTime() / 1e3);
         _token = md5(btoa(username + ":" + _timestamp) + password);
         var d;
         $.ajax({
             url: url_orders,
-            beforeSend: function(xhr) {
+            beforeSend: function (xhr) {
                 xhr.setRequestHeader('timestamp', _timestamp);
                 xhr.setRequestHeader('token', _token);
                 xhr.setRequestHeader('username', 'tiantian');
             },
             data: filter,
             type: "GET",
-            success: function(data) {
+            success: function (data) {
                 d = data;
                 resolve(d);
             }
         });
     })
-    p.then(function(data) {
+    p.then(function (data) {
+        data = data.sort(function (a, b) {
+            return a.id > b.id;
+        })
         orders = data;
-    }).then(function() {
-        $.each(orders, function(index, val) {
+    }).then(function () {
+
+        $.each(orders, function (index, val) {
             if (val.restaurant.id == 92) {
-                var t = new Promise(function(resolve, reject) {
+                var t = new Promise(function (resolve, reject) {
                     _date = new Date;
                     _timestamp = parseInt(_date.getTime() / 1e3);
                     _token = md5(btoa(username + ":" + _timestamp) + password);
                     var d;
                     $.ajax({
                         url: url_orderinfo + val.id,
-                        beforeSend: function(xhr) {
+                        beforeSend: function (xhr) {
                             xhr.setRequestHeader('timestamp', _timestamp);
                             xhr.setRequestHeader('token', _token);
                             xhr.setRequestHeader('username', 'tiantian');
                         },
                         type: "GET",
-                        success: function(data) {
+                        success: function (data) {
                             d = data;
-                            $.each(d.goods, function(i, v) {
-                                if (o.find(function(a) {
-                                        return a.id == d.sn
-                                    }) != undefined) {} else {
+                            if (o.find(function (a) {
+                                    return a.id == d.sn
+                                }) != undefined) {} else {
+                                $.each(d.goods, function (i, v) {
+
                                     for (var x = 0; x < v.numbers; x++) {
                                         if (val.pickup_address.address == '请选择送餐地址 Seattle WA') {
                                             val.pickup_address.address = val.address;
@@ -148,13 +153,17 @@ function get_data() {
                                             mobile: val.mobile,
                                             address: val.pickup_address.address.indexOf(',') > 0 ? val.pickup_address.address.substring(0, val.pickup_address.address.indexOf(',')) : val.pickup_address.address,
                                             dish: v.name.substring(0, v.name.indexOf('(')) > 0 ? v.name.substring(0, v.name.indexOf('(')) : v.name,
-                                            num: 1,
+                                            num: v.numbers,
                                             updated: v.selected_attrs['升级豪华套餐'] == undefined ? false : true,
                                             addrice: v.selected_attrs['饭不够吃？'] == undefined ? false : true,
                                             starter: v.selected_attrs['升级豪华套餐'] == undefined ? '无' : v.selected_attrs['升级豪华套餐'][0].name,
                                             note: val.user_remark,
                                             order: data,
                                             printed: false
+                                        }
+                                        if (v.selected_attrs['豪华套餐配菜'] != undefined) {
+                                            item.updated = true;
+                                            item.starter = v.selected_attrs['豪华套餐配菜'][0].name
                                         }
                                         if (val.deliverer_remark != null) {
                                             item.note = val.deliverer_remark;
@@ -169,8 +178,8 @@ function get_data() {
                                         }
                                         addrow(item);
                                     }
-                                }
-                            })
+                                })
+                            }
                             resolve('ok');
                         }
                     });
@@ -178,8 +187,41 @@ function get_data() {
                 plist.push(t);
             }
         })
-    }).then(function() {
+        // var tttt = {
+        //     id: '补餐',
+        //     name: 'ZZ_77L5F',
+        //     mobile: '4258028106',
+        //     address: 'Microsoft No. 32',
+        //     dish: '超值午餐A套餐',
+        //     num: 1,
+        //     updated: false,
+        //     addrice: false,
+        //     starter: '无',
+        //     note: '',
+        //     order: 'data',
+        //     printed: false
+        // }
+        // o.push(tttt)
+        // addrow(tttt);
+        // tttt = {
+        //     id: '补餐',
+        //     name: '',
+        //     mobile: '3478332510',
+        //     address: 'Wells Fargo Center',
+        //     dish: '超值午餐A套餐',
+        //     num: 1,
+        //     updated: false,
+        //     addrice: false,
+        //     starter: '无',
+        //     note: '',
+        //     order: 'data',
+        //     printed: false
+        // }
+        // o.push(tttt)
+        // addrow(tttt);
+    }).then(function () {
         let a = Promise.all(plist).then(values => {
+
             build_summery(summery);
             makefilter()
             console.log(o);
@@ -196,7 +238,7 @@ function addrow(value) {
     var a = $('<a>', {
         style: 'background-color: coral;',
         text: '未处理'
-    }).click(function() {
+    }).click(function () {
         if (!value.printed) {
             value.printed = !value.printed;
             a.text('已处理');
@@ -215,11 +257,8 @@ function addrow(value) {
         }
     });
     value['chuli'] = a;
-    if (value.id == 'US138162') {
-        console.log('a');
-    }
     row.append($('<td>').append(a));
-    $.each(value, function(i, v) {
+    $.each(value, function (i, v) {
         if (i != 'order' && i != 'chuli' && i != 'updated' && i != 'addrice' && i != 'printed') {
             var c = $('<td>', {
                 style: 'padding-right:10px',
@@ -250,21 +289,22 @@ function addsummery(value) {
             starter: {},
             order: []
         }
-        $.each(value.order.goods[0].attrs, function(i, v) {
-            if (v.name == '升级豪华套餐' || v.name == '豪华套餐配菜') {
-                $.each(v.values, function(ind, val) {
-                    summery.dish[value.dish].starter[val.name] = 0;
-                })
-                if (summery.starter == null) {
-                    summery.starter = {
-                        num: 0
-                    };
-                    $.each(v.values, function(ind, vals) {
-                        summery.starter[vals.name] = 0;
+        if (value.order != 'data')
+            $.each(value.order.goods[0].attrs, function (i, v) {
+                if (v.name == '升级豪华套餐' || v.name == '豪华套餐配菜') {
+                    $.each(v.values, function (ind, val) {
+                        summery.dish[value.dish].starter[val.name] = 0;
                     })
+                    if (summery.starter == null) {
+                        summery.starter = {
+                            num: 0
+                        };
+                        $.each(v.values, function (ind, vals) {
+                            summery.starter[vals.name] = 0;
+                        })
+                    }
                 }
-            }
-        })
+            })
     }
     summery.address[value.address].num += 1;
     summery.address[value.address].order.push(value);
@@ -296,25 +336,41 @@ function build_summery(data) {
         text: '总数:' + data.num
     }));
     var dish = $('<div>');
+    var dishtable = $('<table>', {
+        cellspacing: 0,
+        cellpadding: 0,
+    });
+    dish.append(dishtable);
     var sdiv = $('<div>');
-    $.each(data.dish, function(i, v) {
+    var x = 1;
+    $.each(data.dish, function (i, v) {
         if (i != 'num') {
-            var _dish = $('<div>');
-            _dish.append($('<div>').append($('<h3>', {
-                text: i + ':' + v.num
+            var _dish = $('<tr>');
+            _dish.addClass('singo');
+            _dish.append($('<td>', {
+
+            }).append($('<h2>', {
+                text: i,
+                style: 'padding-right:100px'
+            }))).append($('<td>').append($('<h2>', {
+                text: v.num,
+                style: 'text-align:center'
             })))
-            $.each(v.starter, function(ind, val) {
+            dishtable.append(_dish);
+            $.each(v.starter, function (ind, val) {
+
                 if (val > 0) {
-                    _dish.append($('<div>').append($('<h4>', {
+                    var ttr = $('<tr>');
+                    dishtable.append(ttr.append($('<td>').append($('<h4>', {
                         text: ind + ':' + val
-                    })))
+                    }))))
                 }
+
             })
-            dish.append(_dish);
         }
 
     })
-    $.each(data.starter, function(i, v) {
+    $.each(data.starter, function (i, v) {
         if (v != 0)
             if (i == 'num')
                 sdiv.append($('<div>').append($('<h1>', {
@@ -331,15 +387,26 @@ function build_summery(data) {
     var loc = $('#l');
     loc.empty();
     var hh = 0;
-    $.each(data.address, function(i, v) {
+    var xx = 0;
+    var tt = 0;
+    var d;
+    $.each(data.address, function (i, v) {
 
-        var _loc = $('<div>', { style: 'padding:30px;' });
-        var table = $('<table>');
-        _loc.append($('<div>').append($('<img>', { src: 'fantuan.png', class: 'im' })).append($('<img>', { src: 'logo.jpg', class: 'im' })))
+        var _loc = $('<div>');
+        var table = $('<table>', {
+            style: 'margin:30px',
+        });
+        _loc.append($('<div>').append($('<img>', {
+            src: 'fantuan.png',
+            class: 'im'
+        })).append($('<img>', {
+            src: 'logo.jpg',
+            class: 'im'
+        })))
         _loc.append($('<div>').append($('<h1>' + i + '&emsp;&emsp;' + v.num + '</h1>')));
         _loc.append(table);
 
-        $.each(v.order, function(ind, val) {
+        $.each(v.order, function (ind, val) {
             table.append($('<tr>').append($('<td>', {
                 style: 'padding-right:15px',
                 text: val.name
@@ -353,7 +420,10 @@ function build_summery(data) {
             if (val.note.length > 0) {
                 table.append($('<tr>').append($('<td>', {
                     colspan: '3'
-                }).append($('<a>' + val.note + '</a>'))));
+                }).append($('<a>', {
+                    style: 'margin-left:20px',
+                    text: val.note
+                }))));
             }
         })
         _loc.append($('<hr>'))
@@ -361,11 +431,15 @@ function build_summery(data) {
         loc.append(_loc);
         console.log(loc.height());
         console.log(_loc.height())
-        hh = hh + _loc.height();
-        if (hh > 900) {
-            _loc.css('page-break-after', 'always')
+        hh = xx;
+        xx = loc.height();
+        tt += xx - hh;
+        if (tt > 1000) {
+            _loc.addClass('break-before');
+            tt = 0;
         }
-        hh = 0;
+        d = _loc;
+        // hh = 0;
     })
 
 }
@@ -381,7 +455,7 @@ function makefilter() {
     })).append($('<lable>', {
         for: 'ttall',
         text: 'all'
-    })).click(function() {
+    })).click(function () {
         console.log($("input[name='all']").is(':checked'));
     });
     f.append($('<input>', {
@@ -402,7 +476,7 @@ function makefilter() {
         for: 'ttrice',
         text: '加饭'
     }));
-    $.each(summery.dish, function(i, v) {
+    $.each(summery.dish, function (i, v) {
         if (i != 'num') {
             f.append($('<input>', {
                 name: 'dish',
@@ -415,7 +489,7 @@ function makefilter() {
             }));
         }
     })
-    f.append($('<button>确认</button>').click(function() {
+    f.append($('<button>确认</button>').click(function () {
         build_sticker();
         build_stickerprint()
     }))
@@ -434,7 +508,7 @@ function build_sticker() {
         if ($("input[name='rice']").is(':checked')) {
             order = order.concat(summery.riceorder);
         }
-        $.each($("input[name='dish']:checked"), function(i, v) {
+        $.each($("input[name='dish']:checked"), function (i, v) {
             order = order.concat(summery.dish[v.value].order);
         })
     }
@@ -492,7 +566,7 @@ function build_sticker() {
 
     }
     var x = 0;
-    $.each(order, function(i, v) {
+    $.each(order, function (i, v) {
         if (!v.printed) {
             tdlist[x].append($('<div>', {
                 style: 'width:100%;margin-top:30px'
@@ -550,7 +624,7 @@ function build_stickerprint() {
         if ($("input[name='rice']").is(':checked')) {
             order = order.concat(summery.riceorder);
         }
-        $.each($("input[name='dish']:checked"), function(i, v) {
+        $.each($("input[name='dish']:checked"), function (i, v) {
             order = order.concat(summery.dish[v.value].order);
         })
     }
@@ -608,7 +682,7 @@ function build_stickerprint() {
 
     }
     var x = 0;
-    $.each(order, function(i, v) {
+    $.each(order, function (i, v) {
         if (!v.printed) {
             tdlist[x].append($('<div>', {
                 style: 'width:100%;margin-top:30px'
@@ -660,7 +734,7 @@ async function getdata(data, url, res) {
     var d;
     $.ajax({
         url: url,
-        beforeSend: function(xhr) {
+        beforeSend: function (xhr) {
             xhr.setRequestHeader('timestamp', _timestamp);
             xhr.setRequestHeader('token', _token);
             xhr.setRequestHeader('username', 'tiantian');
@@ -668,7 +742,7 @@ async function getdata(data, url, res) {
         data: data,
         async: false,
         type: "GET",
-        success: function(data) {
+        success: function (data) {
             d = data;
             res(d)
         }
